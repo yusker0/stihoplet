@@ -1,3 +1,3 @@
 cens
-kolco
+perek
 32

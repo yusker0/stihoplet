@@ -35,6 +35,7 @@ def changeSpeed(filename, speed):
 def para(data, str_count): #O(N), O(N)
     output = ''
     keys = list(data.keys())
+    key_word = ''
     for string in range(str_count):
         if (string + 1) % 2 == 1:
             key = random.choice(keys)
@@ -46,8 +47,9 @@ def para(data, str_count): #O(N), O(N)
             elif word != count_words-1:
                 output += data[random_key][random.randint(0, len(data[random_key])-1)] + ' '
             else: 
-                output += data[key][random.randint(0, len(data[key])-1)] + ' '
-        output += random.choice(['.','?', '!', ',', ''])
+                key_word = random.choice(list(set(data[key]) - set([key_word]))) if len(data[key]) > 1 else random.choice(data[key])
+                output += key_word
+        output += random.choice(['.','?', '!', ',', '']) if (string+1) % 4 != 0 else random.choice(['.','?', '!', '...'])
         if (string + 1) % 4 == 0:
             output += '\n\n'
         else:
@@ -58,6 +60,7 @@ def perek(data, str_count): #O(N), O(N)
     output = ''
     data_keys = list(data.keys())
     keys = [None, None]
+    key_words = ['', '']
     for string in range(str_count):
         if (string + 1) % 4 == 1:
             keys = [random.choice(data_keys), random.choice(data_keys)]
@@ -69,8 +72,9 @@ def perek(data, str_count): #O(N), O(N)
             elif word != count_words-1:
                 output += data[random_key][random.randint(0, len(data[random_key])-1)] + ' '
             else: 
-                output += data[keys[abs((string + 1) % 2 - 1)]][random.randint(0, len(data[keys[abs((string + 1) % 2 - 1)]])-1)] + ' '
-        output += random.choice(['.','?', '!', ',', ''])
+                key_words[abs((string + 1) % 2 - 1)] = random.choice(list(set(data[keys[abs((string + 1) % 2 - 1)]]) - set([key_words[abs((string + 1) % 2 - 1)]]))) if len(data[keys[abs((string + 1) % 2 - 1)]]) > 1  else random.choice(data[keys[abs((string + 1) % 2 - 1)]]) 
+                output += key_words[abs((string + 1) % 2 - 1)]
+        output += random.choice(['.','?', '!', ',', '']) if (string+1) % 4 != 0 else random.choice(['.','?', '!', '...'])
         if (string + 1) % 4 == 0:
             output += '\n\n'
         else:
@@ -80,6 +84,7 @@ def kolco(data, str_count): #O(N), O(N)
     output = ''
     data_keys = list(data.keys())
     keys = [None, None]
+    key_words = ['', '']
     for string in range(str_count):
         if (string + 1) % 4 == 1:
             keys = [random.choice(data_keys), random.choice(data_keys)]
@@ -91,8 +96,9 @@ def kolco(data, str_count): #O(N), O(N)
             elif word != count_words-1:
                 output += data[random_key][random.randint(0, len(data[random_key])-1)] + ' '
             else: 
-                output += data[keys[(string % 2 + max(0, string % 4 - 1)) % 3]][random.randint(0, len(data[keys[(string % 2 + max(0, string % 4 - 1)) % 3]])-1)] + ' '
-        output += random.choice(['.','?', '!', ',', ''])
+                key_words[(string % 2 + max(0, string % 4 - 1)) % 3] = random.choice(list(set(data[keys[(string % 2 + max(0, string % 4 - 1)) % 3]]) - set([key_words[(string % 2 + max(0, string % 4 - 1)) % 3]]))) if len(data[keys[(string % 2 + max(0, string % 4 - 1)) % 3]]) > 1  else random.choice(data[keys[(string % 2 + max(0, string % 4 - 1)) % 3]]) 
+                output += key_words[(string % 2 + max(0, string % 4 - 1)) % 3]
+        output += random.choice(['.','?', '!', ',', '']) if (string+1) % 4 != 0 else random.choice(['.','?', '!', '...'])
         if (string + 1) % 4 == 0:
             output += '\n\n'
         else:
@@ -103,16 +109,17 @@ formal = open('dict/bigFormal.txt', 'r', encoding='utf-8')
 f_data = formal.read().split('\n')
 formal.close()
 formal_data = sorting(f_data)
-# informal = open('dict/informal.txt', 'r', encoding='utf-8')
-# in_data = informal.read().split('\n')
-# informal.close()
-# informal_data = sorting(in_data)
+
+informal = open('dict/informal.txt', 'r', encoding='utf-8')
+in_data = informal.read().split('\n')
+informal.close()
+informal_data = sorting(in_data)
 
 def stihoplet(lang, cens, rifm, str_count):
     if cens == 'cens':
         text = eval(rifm)(formal_data, str_count)
-    # elif cens == 'uncens':
-    #     text = eval(rifm)(informal_data, str_count)
+    elif cens == 'uncens':
+        text = eval(rifm)(informal_data, str_count)
     gtts.gTTS(text, lang=lang).save('audio/stih.mp3')
     changeSpeed('audio/stih.mp3', 1.05)
     return {

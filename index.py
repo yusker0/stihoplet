@@ -8,7 +8,7 @@ bot = telebot.TeleBot(config.params['token'])
 def start(msg):
     start_keyboard = telebot.types.ReplyKeyboardMarkup(True)
     start_keyboard.row('Стих, ёпта' , 'Настройки')
-    bot.send_message(msg.chat.id, f'Здравствуйте, {msg.from_user.username}', reply_markup = start_keyboard)
+    bot.send_message(msg.chat.id, f'Здравствуйте, {msg.from_user.first_name}', reply_markup = start_keyboard)
     if not os.path.exists(f'users/{msg.from_user.username}'):
         f = open(f'users/{msg.from_user.username}.sps', 'w')
         f.write(config.default['cens']+'\n'+config.default['rifm']+'\n'+str(config.default['str']))
@@ -25,7 +25,9 @@ def send_text(msg):
         settings_keyboard = telebot.types.ReplyKeyboardMarkup(True)
         settings_keyboard.row('Цензурность:' , 'Рифмовка:', 'Кол-во строк:')
         settings_keyboard.row('Назад')
-        bot.send_message(msg.chat.id, "Настройки:", reply_markup = settings_keyboard)
+        f = open(f'users/{msg.from_user.username}.sps', 'r')
+        set = f.read().split('\n')
+        bot.send_message(msg.chat.id, f"Цензурность: {config.beautySettings[set[0]]}\nРифмовка: {config.beautySettings[set[1]]}\nКол-во строк: {set[2]}\n", reply_markup = settings_keyboard)
     elif msg_low == 'цензурность:':
         cens_markup = telebot.types.InlineKeyboardMarkup()
         cens_markup.add(telebot.types.InlineKeyboardButton(text='Цензурно', callback_data='cens'))
@@ -46,12 +48,18 @@ def send_text(msg):
     elif msg_low == 'назад':
         start_keyboard = telebot.types.ReplyKeyboardMarkup(True)
         start_keyboard.row('Стих, ёпта' , 'Настройки')
-        bot.send_message(msg.chat.id, "Настройки:", reply_markup = start_keyboard)
+        f = open(f'users/{msg.from_user.username}.sps', 'r')
+        set = f.read().split('\n')
+        bot.send_message(msg.chat.id, f"Цензурность: {config.beautySettings[set[0]]}\nРифмовка: {config.beautySettings[set[1]]}\nКол-во строк: {set[2]}\n", reply_markup = start_keyboard)
     elif msg_low == 'стих, ёпта':
+        start_keyboard = telebot.types.ReplyKeyboardMarkup(True)
+        start_keyboard.row('Стих, ёпта' , 'Настройки')
+        msg_id = bot.send_message(msg.chat.id, "Подождите чуть-чуть!", reply_markup = telebot.types.ReplyKeyboardRemove(True)).message_id
         f = open(f'users/{msg.from_user.username}.sps', 'r')
         set = f.read().split('\n')
         poem = stihoplet.stihoplet(config.params['lang'], set[0], set[1], int(set[2]))
-        bot.send_message(msg.chat.id, poem['text'])
+        bot.delete_message(msg.chat.id, msg_id)
+        bot.send_message(msg.chat.id, poem['text'], reply_markup = start_keyboard)
         bot.send_audio(msg.chat.id, poem['audio'])
 @bot.callback_query_handler(func=lambda call: True)
 def query_handler(call):
@@ -62,7 +70,7 @@ def query_handler(call):
         os.remove(f'users/{call.message.chat.username}.sps')
         f = open(f'users/{call.message.chat.username}.sps', 'w')
         f.write(f'{call.data}\n{set[1]}\n{set[2]}')
-        bot.edit_message_text(f"Спасибо за настройку!", call.message.chat.id, call.message.message_id, reply_markup = None)
+        bot.edit_message_text(config.beautySettings[call.data], call.message.chat.id, call.message.message_id, reply_markup = None)
     elif call.data in ['para', 'perek', 'kolco']:
         f = open(f'users/{call.message.chat.username}.sps', 'r')
         set = f.read().split('\n')
@@ -70,7 +78,7 @@ def query_handler(call):
         os.remove(f'users/{call.message.chat.username}.sps')
         f = open(f'users/{call.message.chat.username}.sps', 'w')
         f.write(f'{set[0]}\n{call.data}\n{set[2]}')
-        bot.edit_message_text(f"Спасибо за настройку!", call.message.chat.id, call.message.message_id, reply_markup = None)
+        bot.edit_message_text(config.beautySettings[call.data], call.message.chat.id, call.message.message_id, reply_markup = None)
     elif call.data in ['16', '32', '64']:
         f = open(f'users/{call.message.chat.username}.sps', 'r')
         set = f.read().split('\n')
@@ -78,7 +86,7 @@ def query_handler(call):
         os.remove(f'users/{call.message.chat.username}.sps')
         f = open(f'users/{call.message.chat.username}.sps', 'w')
         f.write(f'{set[0]}\n{set[1]}\n{call.data}')
-        bot.edit_message_text(f"Спасибо за настройку!", call.message.chat.id, call.message.message_id, reply_markup = None)
+        bot.edit_message_text(call.data, call.message.chat.id, call.message.message_id, reply_markup = None)
     else:
         raise TypeError('Как?')
 

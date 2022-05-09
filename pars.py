@@ -14,6 +14,7 @@ for page in range(10, 1334):
     res = requests.get(url)
     soup = bs(res.text, 'html.parser').find('nav', class_ = "vocab-words-list").find('ul').find_all('a')
     for i in range(len(soup)): 
-        if len(soup[i].text) >= 3 and not ' ' in soup[i].text  and not '.' in soup[i].text and not '(' in soup[i].text and soup[i].text[-1] != '-':
+        word = soup[i].text
+        if len(word) >= 3 and not ' ' in word  and not '.' in word and not '(' in word and word[-1] != '-':
             f.write(soup[i].text.lower() + '\n')
 f.close()
