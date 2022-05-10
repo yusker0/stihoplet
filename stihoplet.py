@@ -3,8 +3,7 @@ import gtts
 from pydub import AudioSegment
 import wave
 
-def sorting(data): #O(N), O(N)
-    sort_data = {}
+def sorting(data, sort_data = {}): #O(N), O(N)
     for word in data:
         end=word[-2]+word[-1]
         if not(end in sort_data.keys()):
@@ -105,7 +104,7 @@ def kolco(data, str_count): #O(N), O(N)
             output += '\n'
     return output
 
-formal = open('dict/bigFormal.txt', 'r', encoding='utf-8')
+formal = open('dict/formal.txt', 'r', encoding='utf-8')
 f_data = formal.read().split('\n')
 formal.close()
 formal_data = sorting(f_data)
@@ -113,15 +112,17 @@ formal_data = sorting(f_data)
 informal = open('dict/informal.txt', 'r', encoding='utf-8')
 in_data = informal.read().split('\n')
 informal.close()
-informal_data = sorting(in_data)
-
-def stihoplet(lang, cens, rifm, str_count):
+informal_data = formal_data
+informal_data = sorting(in_data, informal_data)
+print('Dictionaries loaded')
+def stihoplet(lang, cens, rifm, str_count, user_id):
     if cens == 'cens':
         text = eval(rifm)(formal_data, str_count)
     elif cens == 'uncens':
         text = eval(rifm)(informal_data, str_count)
-    gtts.gTTS(text, lang=lang).save('audio/stih.mp3')
-    changeSpeed('audio/stih.mp3', 1.05)
+    gtts.gTTS(text, lang=lang).save(f'audio/{user_id}.mp3') 
+    print('audio++')
+    changeSpeed(f'audio/{user_id}.mp3', 1.05)
     return {
-        'audio': open('audio/stih.mp3', 'rb'),
+        'audio': open(f'audio/{user_id}.mp3', 'rb'),
         'text': text }
