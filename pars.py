@@ -42,3 +42,60 @@ def formal():
         for p in pages:
             parsWords(requests.get(url+p.find('a')['href']))
     f.close()
+    
+
+# table = sql.execute("SELECT * FROM formal").fetchall()
+# for word in table:
+#     word_text = word[1].lower()
+#     syllables = 0
+#     for ch in range(len(word_text)):
+#         if word_text[ch] in 'аеёиоуэюя':
+#             syllables += 1
+#         if ch == word[2]:
+#             upperID = syllables
+#     sql.execute("UPDATE formal SET upperID=?, syllables_count=? WHERE word=?", (upperID, syllables, word_text))
+# db.commit()
+# print(sql.execute("SELECT * FROM formal").fetchall())
+
+
+# table = """CREATE TABLE IF NOT EXISTS formal(
+#            end CHAR(2),
+#            word CHAR(255), 
+#            upperID INT
+#         );"""
+# sql.execute(table)
+# db.commit()
+# url = "https://orthoepic.ru"
+# res = requests.get(url)
+# alphabet = bs(res.text, 'html.parser').find('nav', {'id' : 'alphabet'}).find_all('a')[16::]
+# def parsPage(res):
+#     words = bs(res.text, 'html.parser').find('p', class_ = 'list').find_all('a')
+#     for word_url in words:
+#         res = requests.get(url + word_url['href'])
+#         soup = bs(res.text, 'html.parser').find('em')
+#         if len(soup.contents)<=3 and len(soup.contents)>=2:
+#             word = ''
+#             uppers = []
+#             id = 0
+#             for s in soup.contents:
+#                 id += len(s.text)
+#                 if '<span>' in str(s):
+#                     uppers.append(id-1)
+#                 word += s.text
+#             if len(uppers) == 1:
+#                 sql.execute("INSERT INTO formal (end, word, upperID) VALUES(?, ?, ?)", (word[-2]+word[-1], word, uppers[0]))
+# for letter_url in alphabet:
+#     print("---------------" + letter_url['href'] + "---------------")
+#     print(1)
+#     res = requests.get(url + letter_url['href'])
+#     pages = bs(res.text, 'html.parser').find('section', {'id':'pages'}).find_all('li')     
+#     if len(pages) != 0:
+#         pages = int(pages[-1].text)
+#     else:
+#         continue
+#     parsPage(res)
+#     for page in range(2, pages+1):
+#         print(page)
+#         res = requests.get(f"{url}{letter_url['href']}/page{page}")
+#         parsPage(res)
+#     db.commit()

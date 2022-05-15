@@ -84,13 +84,12 @@ def send_text(msg):
         bot.send_message(msg.chat.id, f"Цензурность: {config.beautySettings[set[0]]}\nРифмовка: {config.beautySettings[set[1]]}\nКол-во строк: {set[2]}\n", reply_markup = start_keyboard)
     elif msg_low == 'стих, ёпта':
         msg_id = bot.send_message(msg.chat.id, "Подождите чуть-чуть!", reply_markup = telebot.types.ReplyKeyboardRemove(True)).message_id
-        print('++poem')
         start_keyboard = telebot.types.ReplyKeyboardMarkup(True)
         start_keyboard.row('Стих, ёпта' , 'Настройки')
         f = open(f'users/user{msg.from_user.id}.sps', 'r')
         set = f.read().split('\n')
         poem = stihoplet.stihoplet(config.params['lang'], set[0], set[1], int(set[2]), msg.id)
-        print('poem++')
+        print(f'poem++ {msg.from_user.id}')
         bot.delete_message(msg.chat.id, msg_id)
         bot.send_message(msg.chat.id, poem['text'], reply_markup = start_keyboard)
         bot.send_audio(msg.chat.id, poem['audio'])

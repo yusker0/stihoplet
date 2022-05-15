@@ -1,3 +1,3 @@
 cens
-para
-16
+perek
+64
