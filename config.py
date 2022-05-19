@@ -1,15 +1,18 @@
 params = {
-    'token':"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-    'lang':'ru'
+    'token':"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 }
 default = {
-    'cens' : 'cens',
-    'rifm' : 'para',
-    'str' : 16
+    'rhyme' : 'para',
+    'str_count' : 16,
+    'stepSize' : 2,
+    'stressSyll' : 1
 }
 beautySettings = {
-    'cens' : 'Цензурно',
-    'uncens': 'Нецензурно',
+    '21' : 'Ямб',
+    '22': 'Хорей',
+    '31' : 'Дактиль',
+    '32': 'Амфибрахий',
+    '33' : 'Анапест',
     'para': 'Парная',
     'perek': 'Перекрёстная',
     'kolco': 'Кольцевая'

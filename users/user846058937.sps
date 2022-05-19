@@ -1,3 +1,0 @@
-cens
-perek
-64

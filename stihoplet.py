@@ -7,16 +7,6 @@ import sqlite3
 db = sqlite3.connect('stihoplet.db', check_same_thread=False)
 sql = db.cursor()
 
-def sorting(data, sort_data = {}): #O(N), O(N)
-    for word in data:
-        end=word[-2]+word[-1]
-        if not(end in sort_data.keys()):
-            sort_data[end]=[]
-            sort_data[end].append(word)
-        else:
-            sort_data[end].append(word)
-    return sort_data
-
 def changeSpeed(filename, speed):
     sound = AudioSegment.from_mp3(filename)
     filename = filename.split('.')[0]
@@ -35,22 +25,35 @@ def changeSpeed(filename, speed):
     wf.close()
 
 
-def para(str_count): #O(N), O(N)
+def para(str_count, stepSize, stressSyll): #O(N), O(N)
     output = ''
     data_keys = list(map(lambda x: x[0], sql.execute("SELECT DISTINCT end FROM formal").fetchall()))
-    words = sql.execute("SELECT word FROM formal").fetchall()
     key_word = ''
     for string in range(str_count):
         if (string + 1) % 2 == 1:
             key = random.choice(data_keys)
         count_words = random.randint(3,4) 
-        for word in range(count_words):
-            if word == 0:
-                output += random.choice(words)[0].title() + ' '
-            elif word != count_words-1:
-                output += random.choice(words)[0] + ' '
+        for w in range(count_words):
+            if w == 0:
+                words = sql.execute("SELECT word, upperID, syllables_count FROM formal WHERE upperID = ? AND syllables_count != 1", (stressSyll, )).fetchall()
+                word = random.choice(words)
+                output += word[0].title() + ' '
+            elif w != count_words-1:
+                l = word[2] - word[1] - stepSize + stressSyll
+                l = l % stepSize if l >= 0 else l
+                l = stressSyll - l if stressSyll > l else stressSyll + stepSize - l
+                words = sql.execute("SELECT word, upperID, syllables_count FROM formal WHERE upperID = ?  AND syllables_count != 1", (l, )).fetchall()
+                word = random.choice(words)
+                output += word[0] + ' '
             else: 
-                key_word = random.choice(list(set(sql.execute("SELECT word FROM formal WHERE end = ?", (key,)).fetchall()) - set((key_word,))))[0]
+                l = word[2] - word[1] - stepSize + stressSyll
+                l = l % stepSize if l >= 0 else l
+                l = stressSyll - l if stressSyll > l else stressSyll + stepSize - l
+                words = list(set(sql.execute("SELECT word FROM formal WHERE end = ? AND upperID = ?  AND syllables_count != 1", (key, l)).fetchall()) - set((key_word,)))
+                words = list(set(sql.execute("SELECT word FROM formal WHERE end = ?", (key, )).fetchall()) - set((key_word,))) if len(words) == 0 else words
+                words = sql.execute("SELECT word FROM formal WHERE end = ? AND upperID = ?  AND syllables_count != 1", (key, l)).fetchall() if len(words) == 0 else words
+                words = sql.execute("SELECT word FROM formal WHERE end = ?", (key, )).fetchall() if len(words) == 0 else words
+                key_word = random.choice(words)[0]
                 output += key_word
         output += random.choice(['.','?', '!', ',', '']) if (string+1) % 4 != 0 else random.choice(['.','?', '!', '...'])
         if (string + 1) % 4 == 0:
@@ -59,24 +62,37 @@ def para(str_count): #O(N), O(N)
             output += '\n'
     return output
 
-def perek(str_count): #O(N), O(N)
+def perek(str_count, stepSize, stressSyll): #O(N), O(N)
     output = ''
     data_keys = list(map(lambda x: x[0], sql.execute("SELECT DISTINCT end FROM formal").fetchall()))
-    words = sql.execute("SELECT word FROM formal").fetchall()
     keys = [None, None]
     key_words = ['', '']
     for string in range(str_count):
         if (string + 1) % 4 == 1:
             keys = [random.choice(data_keys), random.choice(data_keys)]
         count_words = random.randint(3,4) 
-        for word in range(count_words):
-            if word == 0:
+        for w in range(count_words):
+            if w == 0:
+                words = sql.execute("SELECT word, upperID, syllables_count FROM formal WHERE upperID = ? AND syllables_count != 1", (stressSyll, )).fetchall()
+                word = random.choice(words)
                 output += random.choice(words)[0].title() + ' '
-            elif word != count_words-1:
+            elif w != count_words-1:
+                l = word[2] - word[1] - stepSize + stressSyll
+                l = l % stepSize if l >= 0 else l
+                l = stressSyll - l if stressSyll > l else stressSyll + stepSize - l
+                words = sql.execute("SELECT word, upperID, syllables_count FROM formal WHERE upperID = ?  AND syllables_count != 1", (l, )).fetchall()
                 output += random.choice(words)[0] + ' '
             else: 
                 key = keys[abs((string + 1) % 2 - 1)]
-                key_words[abs((string + 1) % 2 - 1)] = random.choice(list(set(sql.execute("SELECT word FROM formal WHERE end = ?", (key,)).fetchall()) - set((key_words[abs((string + 1) % 2 - 1)],))))[0] 
+                key_word = key_words[abs((string + 1) % 2 - 1)]
+                l = word[2] - word[1] - stepSize + stressSyll
+                l = l % stepSize if l >= 0 else l
+                l = stressSyll - l if stressSyll > l else stressSyll + stepSize - l
+                words = list(set(sql.execute("SELECT word FROM formal WHERE end = ? AND upperID = ?  AND syllables_count != 1", (key, l)).fetchall()) - set((key_word,)))
+                words = list(set(sql.execute("SELECT word FROM formal WHERE end = ?", (key, )).fetchall()) - set((key_word,))) if len(words) == 0 else words
+                words = sql.execute("SELECT word FROM formal WHERE end = ? AND upperID = ?  AND syllables_count != 1", (key, l)).fetchall() if len(words) == 0 else words
+                words = sql.execute("SELECT word FROM formal WHERE end = ?", (key, )).fetchall() if len(words) == 0 else words
+                key_words[abs((string + 1) % 2 - 1)] = random.choice(words)[0]
                 output += key_words[abs((string + 1) % 2 - 1)]
         output += random.choice(['.','?', '!', ',', '']) if (string+1) % 4 != 0 else random.choice(['.','?', '!', '...'])
         if (string + 1) % 4 == 0:
@@ -84,24 +100,38 @@ def perek(str_count): #O(N), O(N)
         else:
             output += '\n'
     return output
-def kolco(str_count): #O(N), O(N)
+
+def kolco(str_count, stepSize, stressSyll): #O(N), O(N)
     output = ''
     data_keys = list(map(lambda x: x[0], sql.execute("SELECT DISTINCT end FROM formal").fetchall()))
-    words = sql.execute("SELECT word FROM formal").fetchall()
     keys = [None, None]
     key_words = ['', '']
     for string in range(str_count):
         if (string + 1) % 4 == 1:
             keys = [random.choice(data_keys), random.choice(data_keys)]
         count_words = random.randint(3,4) 
-        for word in range(count_words):
-            if word == 0:
+        for w in range(count_words):
+            if w == 0:
+                words = sql.execute("SELECT word, upperID, syllables_count FROM formal WHERE upperID = ? AND syllables_count != 1", (stressSyll, )).fetchall()
+                word = random.choice(words)
                 output += random.choice(words)[0].title() + ' '
-            elif word != count_words-1:
+            elif w != count_words-1:
+                l = word[2] - word[1] - stepSize + stressSyll
+                l = l % stepSize if l >= 0 else l
+                l = stressSyll - l if stressSyll > l else stressSyll + stepSize - l
+                words = sql.execute("SELECT word, upperID, syllables_count FROM formal WHERE upperID = ?  AND syllables_count != 1", (l, )).fetchall()
                 output += random.choice(words)[0] + ' '
             else: 
                 key = keys[(string % 2 + max(0, string % 4 - 1)) % 3]
-                key_words[(string % 2 + max(0, string % 4 - 1)) % 3] = random.choice(list(set(sql.execute("SELECT word FROM formal WHERE end = ?", (key,)).fetchall()) - set((key_words[(string % 2 + max(0, string % 4 - 1)) % 3],))))[0]
+                key_word = key_words[(string % 2 + max(0, string % 4 - 1)) % 3]
+                l = word[2] - word[1] - stepSize + stressSyll
+                l = l % stepSize if l >= 0 else l
+                l = stressSyll - l if stressSyll > l else stressSyll + stepSize - l
+                words = list(set(sql.execute("SELECT word FROM formal WHERE end = ? AND upperID = ?  AND syllables_count != 1", (key, l)).fetchall()) - set((key_word,)))
+                words = list(set(sql.execute("SELECT word FROM formal WHERE end = ?", (key, )).fetchall()) - set((key_word,))) if len(words) == 0 else words
+                words = sql.execute("SELECT word FROM formal WHERE end = ? AND upperID = ?  AND syllables_count != 1", (key, l)).fetchall() if len(words) == 0 else words
+                words = sql.execute("SELECT word FROM formal WHERE end = ?", (key, )).fetchall() if len(words) == 0 else words
+                key_words[(string % 2 + max(0, string % 4 - 1)) % 3] = random.choice(words)[0]
                 output += key_words[(string % 2 + max(0, string % 4 - 1)) % 3]
         output += random.choice(['.','?', '!', ',', '']) if (string+1) % 4 != 0 else random.choice(['.','?', '!', '...'])
         if (string + 1) % 4 == 0:
@@ -110,24 +140,10 @@ def kolco(str_count): #O(N), O(N)
             output += '\n'
     return output
 
-# formal = open('dict/formal.txt', 'r', encoding='utf-8')
-# f_data = formal.read().split('\n')
-# formal.close()
-# formal_data = sorting(f_data)
-
-# informal = open('dict/informal.txt', 'r', encoding='utf-8')
-# in_data = informal.read().split('\n')
-# informal.close()
-# informal_data = formal_data
-# informal_data = sorting(in_data, informal_data)
-# print('Dictionaries loaded')
-def stihoplet(lang, cens, rifm, str_count, user_id):
-    if cens == 'cens':
-        text = eval(rifm)(str_count)
-    elif cens == 'uncens':
-        text = eval(rifm)(str_count)
-    gtts.gTTS(text, lang=lang).save(f'audio/{user_id}.mp3')
-    changeSpeed(f'audio/{user_id}.mp3', 1.05)
+def stihoplet(stepSize, stressSyll, rifm, str_count, filename):
+    text = eval(rifm)(str_count, stepSize, stressSyll)
+    gtts.gTTS(text, 'ru').save(f'audio/{filename}.mp3')
+    changeSpeed(f'audio/{filename}.mp3', 1.05)
     return {
-        'audio': open(f'audio/{user_id}.mp3', 'rb'),
+        'audio': open(f'audio/{filename}.mp3', 'rb'),
         'text': text }
